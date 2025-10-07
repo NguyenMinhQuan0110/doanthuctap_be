@@ -3,9 +3,8 @@ package com.example.demo.entites;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import org.hibernate.tool.schema.TargetType;
-
 import com.example.demo.entites.enums.BookingStatus;
+import com.example.demo.entites.enums.TargetType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
