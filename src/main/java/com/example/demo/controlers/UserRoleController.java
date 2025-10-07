@@ -1,0 +1,41 @@
+package com.example.demo.controlers;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo.dtos.request.UserRoleAssignRequest;
+import com.example.demo.dtos.response.UserRoleResponse;
+import com.example.demo.services.interfaces.UserRoleService;
+
+@RestController
+@RequestMapping("/api/user-roles")
+public class UserRoleController {
+    @Autowired
+    private UserRoleService userRoleService;
+
+    // Lấy danh sách role của 1 user
+    @GetMapping("/{userId}")
+    public List<UserRoleResponse> getRolesByUser(@PathVariable("userId") Integer userId) {
+        return userRoleService.getRolesByUserId(userId);
+    }
+
+    // Gán 1 hoặc nhiều role cho user
+    @PostMapping("/assign")
+    public List<UserRoleResponse> assignRoles(@RequestBody UserRoleAssignRequest request) {
+        return userRoleService.assignRolesToUser(request);
+    }
+
+    // Xóa 1 role khỏi user
+    @DeleteMapping("/{userId}/{roleId}")
+    public void removeRole(@PathVariable Integer userId, @PathVariable Integer roleId) {
+        userRoleService.removeRoleFromUser(userId, roleId);
+    }
+}
