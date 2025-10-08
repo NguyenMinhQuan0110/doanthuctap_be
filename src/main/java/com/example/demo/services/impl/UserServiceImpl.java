@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.dtos.request.UserRequest;
@@ -19,6 +20,9 @@ public class UserServiceImpl implements UserService{
 	
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private UserResponse convertToResponse(User user) {
         return new UserResponse(
@@ -33,7 +37,7 @@ public class UserServiceImpl implements UserService{
         User user = new User();
         user.setFullName(request.getFullName()); // giả sử fullName = username
         user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword()); // TODO: hash password
+        user.setPassword(passwordEncoder.encode(request.getPassword())); // TODO: hash password
         user.setPhone(request.getPhone());
         return user;
     }
@@ -69,7 +73,7 @@ public class UserServiceImpl implements UserService{
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
         if (request.getPassword() != null && !request.getPassword().isEmpty()) {
-            user.setPassword(request.getPassword()); // TODO: hash password
+            user.setPassword(passwordEncoder.encode(request.getPassword())); // TODO: hash password
         }
 
         User updatedUser = userRepository.save(user);
