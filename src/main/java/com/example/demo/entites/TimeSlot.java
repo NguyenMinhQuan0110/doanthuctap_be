@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "time_slot")
+@Table(name = "TimeSlot")
 @Getter
 @Setter
 @NoArgsConstructor
