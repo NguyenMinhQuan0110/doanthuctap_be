@@ -3,6 +3,7 @@ package com.example.demo.controlers;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,32 +22,37 @@ import com.example.demo.services.interfaces.DistrictService;
 public class DistrictController {
     @Autowired
     private DistrictService districtService;
-
+    
     @GetMapping
     public List<DistrictResponse> getAllDistricts() {
         return districtService.getAllDistricts();
     }
-
+    
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/{id}")
     public DistrictResponse getDistrictById(@PathVariable("id") Integer id) {
         return districtService.getDistrictById(id);
     }
-
+    
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/province/{provinceId}")
     public List<DistrictResponse> getDistrictsByProvince(@PathVariable("provinceId") Integer provinceId) {
         return districtService.getDistrictsByProvince(provinceId);
     }
 
+    @PreAuthorize("hasRole('admin')")
     @PostMapping("/create")
     public DistrictResponse createDistrict(@RequestBody DistrictRequest request) {
         return districtService.createDistrict(request);
     }
 
+    @PreAuthorize("hasRole('admin')")
     @PutMapping("/update/{id}")
     public DistrictResponse updateDistrict(@PathVariable("id") Integer id, @RequestBody DistrictRequest request) {
         return districtService.updateDistrict(id, request);
     }
 
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/delete/{id}")
     public void deleteDistrict(@PathVariable("id") Integer id) {
         districtService.deleteDistrict(id);

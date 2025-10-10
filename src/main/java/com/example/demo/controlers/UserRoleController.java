@@ -3,6 +3,7 @@ package com.example.demo.controlers;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,18 +23,21 @@ public class UserRoleController {
     private UserRoleService userRoleService;
 
     // Lấy danh sách role của 1 user
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/{userId}")
     public List<UserRoleResponse> getRolesByUser(@PathVariable("userId") Integer userId) {
         return userRoleService.getRolesByUserId(userId);
     }
 
     // Gán 1 hoặc nhiều role cho user
+    @PreAuthorize("hasRole('admin')")
     @PostMapping("/assign")
     public List<UserRoleResponse> assignRoles(@RequestBody UserRoleAssignRequest request) {
         return userRoleService.assignRolesToUser(request);
     }
 
     // Xóa 1 role khỏi user
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/{userId}/{roleId}")
     public void removeRole(@PathVariable Integer userId, @PathVariable Integer roleId) {
         userRoleService.removeRoleFromUser(userId, roleId);

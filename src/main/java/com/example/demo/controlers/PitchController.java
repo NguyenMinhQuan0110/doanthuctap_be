@@ -3,6 +3,7 @@ package com.example.demo.controlers;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,32 +22,36 @@ import com.example.demo.services.interfaces.PitchService;
 public class PitchController {
     @Autowired
     private PitchService pitchService;
-
+    
+    @PreAuthorize("hasAnyRole('admin')")
     @GetMapping
     public List<PitchResponse> getAllPitches() {
         return pitchService.getAllPitches();
     }
-
+    
     @GetMapping("/{id}")
     public PitchResponse getPitchById(@PathVariable("id") Integer id) {
         return pitchService.getPitchById(id);
     }
-
+    
     @GetMapping("/complex/{complexId}")
     public List<PitchResponse> getByComplex(@PathVariable("complexId") Integer complexId) {
         return pitchService.getPitchesByComplex(complexId);
     }
-
+    
+    @PreAuthorize("hasAnyRole('admin','owner')")
     @PostMapping("/create")
     public PitchResponse createPitch(@RequestBody PitchRequest request) {
         return pitchService.createPitch(request);
     }
 
+    @PreAuthorize("hasAnyRole('admin','owner')")
     @PutMapping("/update/{id}")
     public PitchResponse updatePitch(@PathVariable("id") Integer id, @RequestBody PitchRequest request) {
         return pitchService.updatePitch(id, request);
     }
 
+    @PreAuthorize("hasAnyRole('admin','owner')")
     @DeleteMapping("/delete/{id}")
     public void deletePitch(@PathVariable("id") Integer id) {
         pitchService.deletePitch(id);

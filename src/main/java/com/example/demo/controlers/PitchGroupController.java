@@ -3,6 +3,7 @@ package com.example.demo.controlers;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,7 +22,7 @@ import com.example.demo.services.interfaces.PitchGroupService;
 public class PitchGroupController {
     @Autowired
     private PitchGroupService pitchGroupService;
-
+    
     @GetMapping
     public List<PitchGroupResponse> getAll() {
         return pitchGroupService.getAllPitchGroups();
@@ -37,16 +38,19 @@ public class PitchGroupController {
         return pitchGroupService.getPitchGroupsByComplex(complexId);
     }
 
+    @PreAuthorize("hasAnyRole('admin')")
     @PostMapping("/create")
     public PitchGroupResponse create(@RequestBody PitchGroupRequest request) {
         return pitchGroupService.createPitchGroup(request);
     }
 
+    @PreAuthorize("hasAnyRole('admin')")
     @PutMapping("/update/{id}")
     public PitchGroupResponse update(@PathVariable("id") Integer id, @RequestBody PitchGroupRequest request) {
         return pitchGroupService.updatePitchGroup(id, request);
     }
 
+    @PreAuthorize("hasAnyRole('admin')")
     @DeleteMapping("/delete/{id}")
     public void delete(@PathVariable("id") Integer id) {
         pitchGroupService.deletePitchGroup(id);
