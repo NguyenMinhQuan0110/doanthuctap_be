@@ -39,6 +39,9 @@ public class User {
 
     @Column(name = "email", unique = true, length = 100)
     private String email;
+    
+    @Column(name = "avatar", length = 255)
+    private String avatar;
 
     @Column(name = "password", nullable = false, length = 255)
     private String password;

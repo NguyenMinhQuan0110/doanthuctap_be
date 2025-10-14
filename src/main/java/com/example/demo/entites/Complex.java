@@ -68,4 +68,7 @@ public class Complex {
 
     @OneToMany(mappedBy = "complex", cascade = CascadeType.ALL)
     private List<Pitch> pitches = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "complex", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Image> images = new ArrayList<>();
 }
