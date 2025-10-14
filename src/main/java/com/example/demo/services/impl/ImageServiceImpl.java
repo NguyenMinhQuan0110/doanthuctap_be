@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,19 +22,21 @@ import com.example.demo.repositories.ImageRepository;
 import com.example.demo.services.interfaces.ImageService;
 
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ImageServiceImpl implements ImageService{
-    private final ImageRepository imageRepository;
-    private final ComplexRepository complexRepository;
+	
+    @Autowired private ImageRepository imageRepository;
+    @Autowired private ComplexRepository complexRepository;
 
-    @Value("${upload.path:uploads/images}") // Có thể config trong application.properties
+    @Value("${upload.complex-dir}") 
     private String uploadDir;
+
+    @Value("${server.url}") 
+    private String serverUrl;
 
     @Override
     public List<ImageResponse> getImagesByComplexId(Integer complexId) {
@@ -52,7 +55,7 @@ public class ImageServiceImpl implements ImageService{
         Complex complex = complexRepository.findById(complexId)
                 .orElseThrow(() -> new RuntimeException("Complex not found"));
 
-        // Tạo thư mục upload nếu chưa có
+        // Tạo thư mục nếu chưa có
         Path uploadPath = Paths.get(uploadDir);
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
@@ -62,13 +65,13 @@ public class ImageServiceImpl implements ImageService{
         String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
         Path filePath = uploadPath.resolve(fileName);
 
-        // Lưu file lên server
+        // Lưu file vật lý
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-        // Lưu thông tin vào DB
+        // Lưu thông tin DB
         Image image = new Image();
         image.setComplex(complex);
-        image.setImageUrl("/uploads/images/" + fileName);
+        image.setImageUrl("/uploads/complex/" + fileName);
         imageRepository.save(image);
 
         log.info("✅ Uploaded image: {}", fileName);
@@ -76,8 +79,8 @@ public class ImageServiceImpl implements ImageService{
     }
 
     @Override
-    public void deleteImage(Integer id) throws IOException {
-        Image image = imageRepository.findById(id)
+    public void deleteImage(Integer imageId) throws IOException {
+        Image image = imageRepository.findById(imageId)
                 .orElseThrow(() -> new RuntimeException("Image not found"));
 
         // Xóa file vật lý
@@ -92,14 +95,14 @@ public class ImageServiceImpl implements ImageService{
         }
 
         imageRepository.delete(image);
-        log.info("✅ Deleted image record with id: {}", id);
+        log.info("✅ Deleted image record with id: {}", imageId);
     }
 
     private ImageResponse mapToResponse(Image image) {
         ImageResponse res = new ImageResponse();
         res.setImageId(image.getImageId());
-        res.setImageUrl(image.getImageUrl());
         res.setUploadedAt(image.getUploadedAt());
+        res.setImageUrl(serverUrl + image.getImageUrl()); // full URL để FE hiển thị được
         return res;
     }
 }

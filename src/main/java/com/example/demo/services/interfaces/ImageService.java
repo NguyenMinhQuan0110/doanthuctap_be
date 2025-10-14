@@ -10,5 +10,5 @@ import com.example.demo.dtos.response.ImageResponse;
 public interface ImageService {
     List<ImageResponse> getImagesByComplexId(Integer complexId);
     ImageResponse uploadImage(Integer complexId, MultipartFile file) throws IOException;
-    void deleteImage(Integer id) throws IOException;
+    void deleteImage(Integer imageId) throws IOException;
 }

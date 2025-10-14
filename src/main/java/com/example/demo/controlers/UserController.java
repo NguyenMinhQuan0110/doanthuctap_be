@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.dtos.request.UserRequest;
 import com.example.demo.dtos.response.UserResponse;
@@ -60,5 +62,13 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable("id") Integer id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+    
+    // ✅ API đổi avatar
+    @PostMapping("/avatar/{id}")
+    public ResponseEntity<UserResponse> updateAvatar(
+            @PathVariable("id") Integer id,
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(userService.updateAvatar(id, file));
     }
 }
