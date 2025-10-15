@@ -1,6 +1,9 @@
 package com.example.demo.services.impl;
 
+import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,11 +11,19 @@ import org.springframework.stereotype.Service;
 
 import com.example.demo.dtos.request.BookingRequest;
 import com.example.demo.dtos.response.BookingResponse;
+import com.example.demo.dtos.response.TimeSlotResponse;
 import com.example.demo.entites.Booking;
+import com.example.demo.entites.Complex;
+import com.example.demo.entites.Pitch;
+import com.example.demo.entites.PitchGroup;
 import com.example.demo.entites.TimeSlot;
 import com.example.demo.entites.User;
 import com.example.demo.entites.enums.BookingStatus;
+import com.example.demo.entites.enums.TargetType;
 import com.example.demo.repositories.BookingRepository;
+import com.example.demo.repositories.ComplexRepository;
+import com.example.demo.repositories.PitchGroupRepository;
+import com.example.demo.repositories.PitchRepository;
 import com.example.demo.repositories.TimeSlotRepository;
 import com.example.demo.repositories.UserRepository;
 import com.example.demo.services.interfaces.BookingService;
@@ -29,6 +40,15 @@ public class BookingServiceImpl implements BookingService{
 
     @Autowired
     private TimeSlotRepository timeSlotRepository;
+    
+    @Autowired
+    private ComplexRepository complexRepository;
+    
+    @Autowired
+    private PitchRepository pitchRepository;
+
+    @Autowired
+    private PitchGroupRepository pitchGroupRepository;
 
     @Override
     public List<BookingResponse> getAllBookings() {
@@ -123,5 +143,85 @@ public class BookingServiceImpl implements BookingService{
     @Override
     public List<BookingResponse> getBookingsByComplex(Integer complexId) {
         return bookingRepository.findByComplexId(complexId).stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<TimeSlotResponse> getAvailableTimeSlots(Integer complexId, TargetType targetType, Integer targetId, LocalDate bookingDate) {
+        Complex complex = complexRepository.findById(complexId)
+                .orElseThrow(() -> new RuntimeException("Complex not found"));
+
+        // Lấy tất cả TimeSlot thuộc complex
+        List<TimeSlot> allSlots = timeSlotRepository.findByComplex(complex);
+
+        // Lấy danh sách booking trong ngày đó
+        List<Booking> allBookings = bookingRepository.findByBookingDate(bookingDate);
+
+        // Danh sách slotId bị chiếm
+        Set<Integer> bookedSlotIds = new HashSet<>();
+
+        if (targetType == TargetType.group) {
+            // Nếu đang kiểm tra PitchGroup
+            PitchGroup group = pitchGroupRepository.findById(targetId)
+                    .orElseThrow(() -> new RuntimeException("PitchGroup not found"));
+
+            // 1️⃣: Lấy các Pitch con
+            Set<Integer> pitchIds = group.getPitches().stream()
+                    .map(Pitch::getPitchId)
+                    .collect(Collectors.toSet());
+
+            // 2️⃣: Nếu Group hoặc bất kỳ Pitch con nào đã được đặt ở timeslot nào → slot đó bị chặn
+            for (Booking b : allBookings) {
+                if (
+                    // Bị chặn do Group này
+                    (b.getTargetType() == TargetType.group && b.getTargetId().equals(group.getGroupId())) ||
+                    // Bị chặn do một trong các Pitch con
+                    (b.getTargetType() == TargetType.pitch && pitchIds.contains(b.getTargetId()))
+                ) {
+                    bookedSlotIds.add(b.getTimeSlot().getTimeSlotId());
+                }
+            }
+        } else if (targetType == TargetType.pitch) {
+            // Nếu đang kiểm tra Pitch riêng lẻ
+            Pitch pitch = pitchRepository.findById(targetId)
+                    .orElseThrow(() -> new RuntimeException("Pitch not found"));
+
+            // 1️⃣: Lấy tất cả Group chứa Pitch này
+            List<PitchGroup> containingGroups = pitchGroupRepository.findAll().stream()
+                    .filter(g -> g.getPitches().stream()
+                            .anyMatch(p -> p.getPitchId().equals(pitch.getPitchId())))
+                    .collect(Collectors.toList());
+
+            Set<Integer> groupIds = containingGroups.stream()
+                    .map(PitchGroup::getGroupId)
+                    .collect(Collectors.toSet());
+
+            // 2️⃣: Nếu Pitch này hoặc Group chứa nó đã được đặt ở timeslot nào → slot đó bị chặn
+            for (Booking b : allBookings) {
+                if (
+                    (b.getTargetType() == TargetType.pitch && b.getTargetId().equals(pitch.getPitchId())) ||
+                    (b.getTargetType() == TargetType.group && groupIds.contains(b.getTargetId()))
+                ) {
+                    bookedSlotIds.add(b.getTimeSlot().getTimeSlotId());
+                }
+            }
+        }
+
+        // 3️⃣: Lọc ra các slot chưa bị chiếm
+        return allSlots.stream()
+                .filter(slot -> !bookedSlotIds.contains(slot.getTimeSlotId()))
+                .map(this::mapToTimeSlotResponse)
+                .collect(Collectors.toList());
+    }
+    
+    private TimeSlotResponse mapToTimeSlotResponse(TimeSlot timeSlot) {
+        TimeSlotResponse response = new TimeSlotResponse();
+        response.setId(timeSlot.getTimeSlotId());
+        response.setStartTime(timeSlot.getStartTime());
+        response.setEndTime(timeSlot.getEndTime());
+        response.setPrice(timeSlot.getPrice());
+        response.setStatus(timeSlot.getStatus());
+        response.setComplexId(timeSlot.getComplex().getComplexId());
+        response.setComplexName(timeSlot.getComplex().getName());
+        return response;
     }
 }

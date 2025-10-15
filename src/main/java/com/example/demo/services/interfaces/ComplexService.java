@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.example.demo.dtos.request.ComplexRequest;
 import com.example.demo.dtos.response.ComplexResponse;
+import com.example.demo.entites.enums.PitchType;
 
 public interface ComplexService {
     List<ComplexResponse> getAllComplexes();
@@ -13,4 +14,5 @@ public interface ComplexService {
     void deleteComplex(Integer id);
     List<ComplexResponse> getComplexesByDistrictId(Integer districtId);
     List<ComplexResponse> getComplexesByProvinceId(Integer provinceId);
+    List<ComplexResponse> searchComplexes(Integer provinceId, Integer districtId, PitchType pitchType);
 }

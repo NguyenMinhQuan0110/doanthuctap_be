@@ -1,5 +1,6 @@
 package com.example.demo.controlers;
 
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +12,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dtos.request.TimeSlotRequest;
+
 import com.example.demo.dtos.response.TimeSlotResponse;
 import com.example.demo.services.interfaces.TimeSlotService;
 

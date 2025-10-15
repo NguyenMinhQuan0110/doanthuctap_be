@@ -71,7 +71,7 @@ public class ImageServiceImpl implements ImageService{
         // Lưu thông tin DB
         Image image = new Image();
         image.setComplex(complex);
-        image.setImageUrl("/uploads/complex/" + fileName);
+        image.setImageUrl("/uploads/complexes/" + fileName);
         imageRepository.save(image);
 
         log.info("✅ Uploaded image: {}", fileName);

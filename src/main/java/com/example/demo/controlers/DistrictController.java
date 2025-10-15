@@ -34,7 +34,6 @@ public class DistrictController {
         return districtService.getDistrictById(id);
     }
     
-    @PreAuthorize("hasRole('admin')")
     @GetMapping("/province/{provinceId}")
     public List<DistrictResponse> getDistrictsByProvince(@PathVariable("provinceId") Integer provinceId) {
         return districtService.getDistrictsByProvince(provinceId);

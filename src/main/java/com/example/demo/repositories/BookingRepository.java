@@ -19,4 +19,16 @@ public interface BookingRepository extends JpaRepository<Booking, Integer>{
     boolean existsByTargetTypeAndTargetIdAndTimeSlotAndBookingDate(TargetType type, Integer targetId, TimeSlot slot, LocalDate date);
     @Query("SELECT b FROM Booking b WHERE b.timeSlot.complex.complexId = :complexId")
     List<Booking> findByComplexId(@Param("complexId") Integer complexId);
+    List<Booking> findByBookingDate(LocalDate bookingDate);
+    @Query(
+    		  value = "SELECT group_id FROM pitchgroupdetail WHERE pitch_id = :pitchId",
+    		  nativeQuery = true
+    		)
+    		List<Integer> findGroupIdsByPitchId(@Param("pitchId") Integer pitchId);
+
+    		@Query(
+    		  value = "SELECT pitch_id FROM pitchgroupdetail WHERE group_id = :groupId",
+    		  nativeQuery = true
+    		)
+    		List<Integer> findPitchIdsByGroupId(@Param("groupId") Integer groupId);
 }

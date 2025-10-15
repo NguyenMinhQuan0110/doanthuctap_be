@@ -1,8 +1,10 @@
 package com.example.demo.controlers;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,10 +12,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dtos.request.BookingRequest;
 import com.example.demo.dtos.response.BookingResponse;
+import com.example.demo.dtos.response.TimeSlotResponse;
+import com.example.demo.entites.enums.TargetType;
 import com.example.demo.services.interfaces.BookingService;
 
 @RestController
@@ -54,5 +59,14 @@ public class BookingController {
     @GetMapping("/complex/{complexId}")
     public List<BookingResponse> getBookingsByComplex(@PathVariable("complexId") Integer complexId) {
         return bookingService.getBookingsByComplex(complexId);
+    }
+    
+    @GetMapping("/available-timeslots")
+    public List<TimeSlotResponse> getAvailableTimeSlots(
+            @RequestParam("complexId") Integer complexId,
+            @RequestParam("targetType") TargetType targetType,
+            @RequestParam("targetId") Integer targetId,
+            @RequestParam("bookingDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate bookingDate) {
+        return bookingService.getAvailableTimeSlots(complexId, targetType, targetId, bookingDate);
     }
 }

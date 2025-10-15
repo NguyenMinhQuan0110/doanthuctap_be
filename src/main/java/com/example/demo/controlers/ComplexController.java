@@ -1,8 +1,10 @@
 package com.example.demo.controlers;
 
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,10 +14,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dtos.request.ComplexRequest;
 import com.example.demo.dtos.response.ComplexResponse;
+import com.example.demo.entites.enums.PitchType;
 import com.example.demo.services.interfaces.ComplexService;
 
 @RestController
@@ -63,5 +67,13 @@ public class ComplexController {
     @GetMapping("/province/{provinceId}")
     public ResponseEntity<List<ComplexResponse>> getByProvince(@PathVariable("provinceId") Integer provinceId) {
         return ResponseEntity.ok(complexService.getComplexesByProvinceId(provinceId));
+    }
+    
+    @GetMapping("/search")
+    public List<ComplexResponse> searchComplexes(
+            @RequestParam( name="provinceId",required = false) Integer provinceId,
+            @RequestParam(name="districtId",required = false) Integer districtId,
+            @RequestParam(name="pitchType",required = false) PitchType pitchType) {
+        return complexService.searchComplexes(provinceId, districtId, pitchType);
     }
 }

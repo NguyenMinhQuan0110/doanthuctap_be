@@ -1,5 +1,6 @@
 package com.example.demo.services.impl;
 
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -7,10 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.dtos.request.TimeSlotRequest;
+
 import com.example.demo.dtos.response.TimeSlotResponse;
 import com.example.demo.entites.Complex;
+
 import com.example.demo.entites.TimeSlot;
 import com.example.demo.repositories.ComplexRepository;
+
 import com.example.demo.repositories.TimeSlotRepository;
 import com.example.demo.services.interfaces.TimeSlotService;
 
@@ -21,6 +25,7 @@ public class TimeSlotServiceImpl implements TimeSlotService{
     @Autowired
     private TimeSlotRepository timeSlotRepository;
 
+    
     @Autowired
     private ComplexRepository complexRepository;
 
@@ -91,7 +96,7 @@ public class TimeSlotServiceImpl implements TimeSlotService{
                 .orElseThrow(() -> new RuntimeException("TimeSlot not found"));
         timeSlotRepository.delete(timeSlot);
     }
-
+    
     private TimeSlotResponse mapToResponse(TimeSlot timeSlot) {
         TimeSlotResponse response = new TimeSlotResponse();
         response.setId(timeSlot.getTimeSlotId());

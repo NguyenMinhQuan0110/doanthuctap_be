@@ -12,6 +12,7 @@ import com.example.demo.entites.Complex;
 import com.example.demo.entites.District;
 import com.example.demo.entites.Province;
 import com.example.demo.entites.User;
+import com.example.demo.entites.enums.PitchType;
 import com.example.demo.repositories.ComplexRepository;
 import com.example.demo.repositories.DistrictRepository;
 import com.example.demo.repositories.UserRepository;
@@ -148,5 +149,36 @@ public class ComplexServiceImpl implements ComplexService{
         return complexes.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+    @Override
+    public List<ComplexResponse> searchComplexes(Integer provinceId, Integer districtId, PitchType pitchType) {
+        List<Complex> complexes = complexRepository.findAll();
+
+        // Lọc theo provinceId nếu có
+        if (provinceId != null) {
+            complexes = complexes.stream()
+                .filter(c -> c.getDistrict() != null && c.getDistrict().getProvince() != null 
+                    && c.getDistrict().getProvince().getProvinceId().equals(provinceId))
+                .collect(Collectors.toList());
+        }
+
+        // Lọc theo districtId nếu có
+        if (districtId != null) {
+            complexes = complexes.stream()
+                .filter(c -> c.getDistrict() != null && c.getDistrict().getDistrictId().equals(districtId))
+                .collect(Collectors.toList());
+        }
+
+        // Lọc theo pitchType nếu có
+        if (pitchType != null) {
+            complexes = complexes.stream()
+                .filter(c -> c.getPitches() != null && c.getPitches().stream().anyMatch(p -> p.getType() == pitchType))
+                .collect(Collectors.toList());
+        }
+
+        // Lọc theo date nếu có (sẽ được triển khai sau khi có endpoint /api/timeslots/available)
+        // Hiện tại bỏ qua date để đảm bảo tìm kiếm hoạt động với các trường tùy chọn
+
+        return complexes.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 }
