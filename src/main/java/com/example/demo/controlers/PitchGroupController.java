@@ -1,8 +1,10 @@
 package com.example.demo.controlers;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,13 +40,13 @@ public class PitchGroupController {
         return pitchGroupService.getPitchGroupsByComplex(complexId);
     }
 
-    @PreAuthorize("hasAnyRole('admin')")
+    @PreAuthorize("hasAnyRole('admin','owner')")
     @PostMapping("/create")
     public PitchGroupResponse create(@RequestBody PitchGroupRequest request) {
         return pitchGroupService.createPitchGroup(request);
     }
 
-    @PreAuthorize("hasAnyRole('admin')")
+    @PreAuthorize("hasAnyRole('admin','owner')")
     @PutMapping("/update/{id}")
     public PitchGroupResponse update(@PathVariable("id") Integer id, @RequestBody PitchGroupRequest request) {
         return pitchGroupService.updatePitchGroup(id, request);
@@ -54,5 +56,15 @@ public class PitchGroupController {
     @DeleteMapping("/delete/{id}")
     public void delete(@PathVariable("id") Integer id) {
         pitchGroupService.deletePitchGroup(id);
+    }
+    
+    @PreAuthorize("hasAnyRole('admin','owner')")
+    @PutMapping("/{id}/status")
+    public ResponseEntity<PitchGroupResponse> updateStatus(
+            @PathVariable("id") Integer id,
+            @RequestBody Map<String, String> requestBody) {
+
+        String status = requestBody.get("status");
+        return ResponseEntity.ok(pitchGroupService.updateStatus(id, status));
     }
 }

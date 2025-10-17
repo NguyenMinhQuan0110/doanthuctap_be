@@ -34,7 +34,7 @@ public class SecurityConfig {
                 // Cho phép các endpoint public (chưa có JWT)
                 .requestMatchers("/api/auth/**", "/api/users/create","/uploads/**",
                 		"/api/pitches/complex/**","/api/complexes/**","/api/provinces","/api/districts/**","/api/images/**",
-                		"/api/pitch-groups/complex/**",
+                		"/api/pitch-groups/complex/**","/api/bookings/available-timeslots",
                 		"/api/complexes/search").permitAll()
                 // Các endpoint khác cần JWT sau này
                 .anyRequest().authenticated()

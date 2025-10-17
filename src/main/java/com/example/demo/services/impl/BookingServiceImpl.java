@@ -1,6 +1,7 @@
 package com.example.demo.services.impl;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -138,6 +139,19 @@ public class BookingServiceImpl implements BookingService{
         response.setTimeSlotId(booking.getTimeSlot().getTimeSlotId());
         response.setTimeSlotRange(booking.getTimeSlot().getStartTime() + " - " + booking.getTimeSlot().getEndTime());
 
+        // Thêm thông tin targetName và complexAddress
+        if (booking.getTargetType() == TargetType.pitch) {
+            Pitch pitch = pitchRepository.findById(booking.getTargetId())
+                    .orElseThrow(() -> new RuntimeException("Pitch not found"));
+            response.setTargetName(pitch.getName());
+            response.setComplexName(pitch.getComplex().getName());
+        } else {
+            PitchGroup group = pitchGroupRepository.findById(booking.getTargetId())
+                    .orElseThrow(() -> new RuntimeException("PitchGroup not found"));
+            response.setTargetName(group.getName());
+            response.setComplexName(group.getComplex().getName());
+        }
+
         return response;
     }
     @Override
@@ -208,10 +222,33 @@ public class BookingServiceImpl implements BookingService{
 
         // 3️⃣: Lọc ra các slot chưa bị chiếm
         return allSlots.stream()
-                .filter(slot -> !bookedSlotIds.contains(slot.getTimeSlotId()))
+                .filter(slot -> slot.getStatus() == com.example.demo.entites.enums.TimeSlotStatus.active) // ✅ chỉ lấy slot active
+                .filter(slot -> !bookedSlotIds.contains(slot.getTimeSlotId())) // ✅ loại slot đã bị đặt
                 .map(this::mapToTimeSlotResponse)
                 .collect(Collectors.toList());
     }
+    
+    @Override
+    public BookingResponse cancelBooking(Integer id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+        
+        if (booking.getStatus() == BookingStatus.cancelled) {
+            throw new RuntimeException("This booking has already been cancelled");
+        }
+        
+        booking.setStatus(BookingStatus.cancelled);
+        booking.setUpdatedAt(LocalDateTime.now());
+        
+        // Nếu có payment thì có thể cập nhật payment luôn
+        if (booking.getPayment() != null) {
+            booking.getPayment().setStatus(com.example.demo.entites.enums.PaymentStatus.refunded);
+            booking.getPayment().setPaidAt(LocalDateTime.now());
+        }
+
+        return mapToResponse(bookingRepository.save(booking));
+    }
+
     
     private TimeSlotResponse mapToTimeSlotResponse(TimeSlot timeSlot) {
         TimeSlotResponse response = new TimeSlotResponse();

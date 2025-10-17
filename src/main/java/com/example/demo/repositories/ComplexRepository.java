@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.demo.entites.Complex;
+import com.example.demo.entites.enums.ComplexStatus;
 
 public interface ComplexRepository extends JpaRepository<Complex, Integer>{
 	boolean existsByName(String name);
@@ -14,4 +15,7 @@ public interface ComplexRepository extends JpaRepository<Complex, Integer>{
 
     // ✅ Lấy cụm sân theo Province
     List<Complex> findByDistrict_Province_ProvinceId(Integer provinceId);
+    List<Complex> findByOwner_UserId(Integer userId);
+    
+    List<Complex> findByStatus(ComplexStatus status);
 }

@@ -2,8 +2,11 @@ package com.example.demo.services.interfaces;
 
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
+
 import com.example.demo.dtos.request.ComplexRequest;
 import com.example.demo.dtos.response.ComplexResponse;
+import com.example.demo.dtos.response.ComplexResponseDistance;
 import com.example.demo.entites.enums.PitchType;
 
 public interface ComplexService {
@@ -14,5 +17,11 @@ public interface ComplexService {
     void deleteComplex(Integer id);
     List<ComplexResponse> getComplexesByDistrictId(Integer districtId);
     List<ComplexResponse> getComplexesByProvinceId(Integer provinceId);
-    List<ComplexResponse> searchComplexes(Integer provinceId, Integer districtId, PitchType pitchType);
+    List<ComplexResponse> searchComplexes(Integer provinceId, Integer districtId, PitchType pitchType); 
+    ComplexResponse updateStatus(Integer id, String status);
+    List<ComplexResponse> getComplexesByOwner(Authentication authentication);
+    
+    List<ComplexResponse> getActiveComplexes();
+    List<ComplexResponseDistance> findNearbyComplexes(double latitude, double longitude, double radiusKm);
+
 }

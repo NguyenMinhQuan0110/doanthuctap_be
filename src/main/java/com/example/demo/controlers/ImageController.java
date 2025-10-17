@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,14 +30,14 @@ public class ImageController {
     public ResponseEntity<List<ImageResponse>> getImagesByComplex(@PathVariable("complexId") Integer complexId) {
         return ResponseEntity.ok(imageService.getImagesByComplexId(complexId));
     }
-
+    @PreAuthorize("hasAnyRole('admin','owner')")
     @PostMapping("/upload/complex/{complexId}")
     public ResponseEntity<ImageResponse> uploadImage(
             @PathVariable("complexId") Integer complexId,
             @RequestParam("file") MultipartFile file) throws IOException {
         return ResponseEntity.ok(imageService.uploadImage(complexId, file));
     }
-
+    @PreAuthorize("hasAnyRole('admin','owner')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Map<String, String>> deleteImage(@PathVariable("id") Integer id) throws IOException {
         imageService.deleteImage(id);

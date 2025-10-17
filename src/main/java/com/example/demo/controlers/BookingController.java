@@ -61,6 +61,12 @@ public class BookingController {
         return bookingService.getBookingsByComplex(complexId);
     }
     
+    @PutMapping("/cancel/{id}")
+    public BookingResponse cancelBooking(@PathVariable("id") Integer id) {
+        return bookingService.cancelBooking(id);
+    }
+
+    
     @GetMapping("/available-timeslots")
     public List<TimeSlotResponse> getAvailableTimeSlots(
             @RequestParam("complexId") Integer complexId,

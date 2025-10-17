@@ -2,11 +2,13 @@ package com.example.demo.controlers;
 
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dtos.request.ComplexRequest;
 import com.example.demo.dtos.response.ComplexResponse;
+import com.example.demo.dtos.response.ComplexResponseDistance;
 import com.example.demo.entites.enums.PitchType;
 import com.example.demo.services.interfaces.ComplexService;
 
@@ -30,6 +33,11 @@ public class ComplexController {
     @GetMapping
     public List<ComplexResponse> getAllComplexes() {
         return complexService.getAllComplexes();
+    }
+    
+    @GetMapping("/active")
+    public ResponseEntity<List<ComplexResponse>> getActiveComplexes() {
+        return ResponseEntity.ok(complexService.getActiveComplexes());
     }
     
     @GetMapping("/{id}")
@@ -76,4 +84,30 @@ public class ComplexController {
             @RequestParam(name="pitchType",required = false) PitchType pitchType) {
         return complexService.searchComplexes(provinceId, districtId, pitchType);
     }
+    
+    @PreAuthorize("hasAnyRole('admin','owner')")
+    @PutMapping("/{id}/status")
+    public ResponseEntity<ComplexResponse> updateStatus(
+            @PathVariable("id") Integer id,
+            @RequestBody Map<String, String> requestBody) {
+
+        String status = requestBody.get("status");
+        return ResponseEntity.ok(complexService.updateStatus(id, status));
+    }
+    
+    @PreAuthorize("hasAnyRole('admin','owner')")
+    @GetMapping("/owner")
+    public List<ComplexResponse> getComplexesByOwner(Authentication authentication) {
+        return complexService.getComplexesByOwner(authentication);
+    }
+
+ // ✅ Lấy các cụm sân trong bán kính giới hạn quanh tọa độ nhập vào
+    @GetMapping("/nearby")
+    public ResponseEntity<List<ComplexResponseDistance>> getNearbyComplexes(
+            @RequestParam("lat") double latitude,
+            @RequestParam("lng") double longitude,
+            @RequestParam("radius") double radiusKm) {
+        return ResponseEntity.ok(complexService.findNearbyComplexes(latitude, longitude, radiusKm));
+    }
+
 }

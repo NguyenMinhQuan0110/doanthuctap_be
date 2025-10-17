@@ -47,13 +47,19 @@ public class UserServiceImpl implements UserService{
         if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
             avatarUrl = serverUrl + user.getAvatar();
         }
+     // Lấy danh sách tên vai trò
+        List<String> roles = user.getRoles().stream()
+                .map(role -> role.getRoleName())
+                .collect(Collectors.toList());
 
+        // Trả về DTO phản hồi
         return new UserResponse(
                 user.getUserId(),
                 user.getFullName(),
                 user.getEmail(),
                 user.getPhone(),
-                avatarUrl
+                avatarUrl,
+                roles
         );
     }
 

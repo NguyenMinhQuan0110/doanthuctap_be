@@ -12,4 +12,5 @@ public interface PitchService {
     PitchResponse createPitch(PitchRequest request);
     PitchResponse updatePitch(Integer id, PitchRequest request);
     void deletePitch(Integer id);
+    PitchResponse updateStatus(Integer id, String status);
 }

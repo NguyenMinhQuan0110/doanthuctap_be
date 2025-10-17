@@ -10,6 +10,7 @@ import com.example.demo.dtos.request.PitchRequest;
 import com.example.demo.dtos.response.PitchResponse;
 import com.example.demo.entites.Complex;
 import com.example.demo.entites.Pitch;
+import com.example.demo.entites.enums.PitchStatus;
 import com.example.demo.repositories.ComplexRepository;
 import com.example.demo.repositories.PitchRepository;
 import com.example.demo.services.interfaces.PitchService;
@@ -94,6 +95,20 @@ public class PitchServiceImpl implements PitchService{
         Pitch pitch = pitchRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pitch not found"));
         pitchRepository.delete(pitch);
+    }
+    
+    @Override
+    public PitchResponse updateStatus(Integer id, String status) {
+        Pitch pitch = pitchRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pitch not found"));
+
+        try {
+            PitchStatus newStatus = PitchStatus.valueOf(status.toLowerCase());
+            pitch.setStatus(newStatus);
+            return mapToResponse(pitchRepository.save(pitch));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status value: " + status);
+        }
     }
 
     private PitchResponse mapToResponse(Pitch pitch) {

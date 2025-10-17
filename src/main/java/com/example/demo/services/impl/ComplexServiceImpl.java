@@ -4,14 +4,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.dtos.request.ComplexRequest;
 import com.example.demo.dtos.response.ComplexResponse;
+import com.example.demo.dtos.response.ComplexResponseDistance;
 import com.example.demo.entites.Complex;
 import com.example.demo.entites.District;
 import com.example.demo.entites.Province;
 import com.example.demo.entites.User;
+import com.example.demo.entites.enums.ComplexStatus;
 import com.example.demo.entites.enums.PitchType;
 import com.example.demo.repositories.ComplexRepository;
 import com.example.demo.repositories.DistrictRepository;
@@ -36,9 +39,19 @@ public class ComplexServiceImpl implements ComplexService{
     public List<ComplexResponse> getAllComplexes() {
         return complexRepository.findAll()
                 .stream()
+                .filter(c -> c.getStatus() == ComplexStatus.active) // ✅ chỉ lấy sân đang hoạt động
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
+    
+    @Override
+    public List<ComplexResponse> getActiveComplexes() {
+        List<Complex> complexes = complexRepository.findByStatus(ComplexStatus.active);
+        return complexes.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     public ComplexResponse getComplexById(Integer id) {
@@ -139,6 +152,7 @@ public class ComplexServiceImpl implements ComplexService{
     public List<ComplexResponse> getComplexesByDistrictId(Integer districtId) {
         List<Complex> complexes = complexRepository.findByDistrict_DistrictId(districtId);
         return complexes.stream()
+        		.filter(c -> c.getStatus() == ComplexStatus.active) // ✅ chỉ lấy sân đang hoạt động
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -147,13 +161,19 @@ public class ComplexServiceImpl implements ComplexService{
     public List<ComplexResponse> getComplexesByProvinceId(Integer provinceId) {
         List<Complex> complexes = complexRepository.findByDistrict_Province_ProvinceId(provinceId);
         return complexes.stream()
+        		.filter(c -> c.getStatus() == ComplexStatus.active) // ✅ chỉ lấy sân đang hoạt động
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
     @Override
     public List<ComplexResponse> searchComplexes(Integer provinceId, Integer districtId, PitchType pitchType) {
         List<Complex> complexes = complexRepository.findAll();
-
+        
+     // ✅ chỉ lấy sân đang hoạt động
+        complexes = complexes.stream()
+                .filter(c -> c.getStatus() == ComplexStatus.active)
+                .collect(Collectors.toList());
+        
         // Lọc theo provinceId nếu có
         if (provinceId != null) {
             complexes = complexes.stream()
@@ -181,4 +201,108 @@ public class ComplexServiceImpl implements ComplexService{
 
         return complexes.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
+    
+    @Override
+    public ComplexResponse updateStatus(Integer id, String status) {
+        Complex complex = complexRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Complex not found"));
+
+        try {
+            ComplexStatus newStatus = ComplexStatus.valueOf(status.toLowerCase());
+            complex.setStatus(newStatus);
+            return mapToResponse(complexRepository.save(complex));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status value: " + status);
+        }
+    }
+    
+    @Override
+    public List<ComplexResponse> getComplexesByOwner(Authentication authentication) {
+        String email = authentication.getName();
+        User owner = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return complexRepository.findByOwner_UserId(owner.getUserId())
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }   
+    
+    @Override
+    public List<ComplexResponseDistance> findNearbyComplexes(double latitude, double longitude, double radiusKm) {
+        List<Complex> complexes = complexRepository.findAll();
+
+        return complexes.stream()
+                // ✅ Chỉ lấy các cụm sân có tọa độ hợp lệ và đang active
+                .filter(c -> 
+                    c.getLatitude() != null && 
+                    c.getLongitude() != null && 
+                    c.getStatus() == ComplexStatus.active
+                )
+                .map(c -> {
+                    double distance = calculateDistance(
+                            latitude, longitude,
+                            c.getLatitude().doubleValue(), c.getLongitude().doubleValue()
+                    );
+
+                    if (distance <= radiusKm) {
+                        ComplexResponseDistance response = mapToResponseDistance(c);
+                        response.setDistance(distance);
+                        return response;
+                    }
+                    return null;
+                })
+                .filter(r -> r != null)
+                .sorted((a, b) -> Double.compare(a.getDistance(), b.getDistance())) // Sắp xếp theo khoảng cách tăng dần
+                .collect(Collectors.toList());
+    }
+
+
+    /**
+     * ✅ Công thức Haversine để tính khoảng cách giữa 2 điểm lat/lng
+     * Trả về đơn vị km
+     */
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int EARTH_RADIUS = 6371; // Bán kính Trái Đất (km)
+
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return EARTH_RADIUS * c;
+    }
+    
+    private ComplexResponseDistance mapToResponseDistance(Complex complex) {
+        ComplexResponseDistance response = new ComplexResponseDistance();
+        response.setId(complex.getComplexId());
+        response.setName(complex.getName());
+        response.setAddress(complex.getAddress());
+        response.setLatitude(complex.getLatitude());
+        response.setLongitude(complex.getLongitude());
+        response.setPhone(complex.getPhone());
+        response.setStatus(complex.getStatus());
+        response.setCreatedAt(complex.getCreatedAt());
+
+        if (complex.getOwner() != null) {
+            response.setOwnerId(complex.getOwner().getUserId());
+            response.setOwnerName(complex.getOwner().getFullName());
+        }
+
+        if (complex.getDistrict() != null) {
+            response.setDistrictId(complex.getDistrict().getDistrictId());
+            response.setDistrictName(complex.getDistrict().getDistrictName());
+            if (complex.getDistrict().getProvince() != null) {
+                Province province = complex.getDistrict().getProvince();
+                response.setProvinceId(province.getProvinceId());
+                response.setProvinceName(province.getProvinceName());
+            }
+        }
+
+        return response;
+    }
+
+
 }

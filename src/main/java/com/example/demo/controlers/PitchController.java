@@ -1,8 +1,10 @@
 package com.example.demo.controlers;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,5 +57,15 @@ public class PitchController {
     @DeleteMapping("/delete/{id}")
     public void deletePitch(@PathVariable("id") Integer id) {
         pitchService.deletePitch(id);
+    }
+    
+    @PreAuthorize("hasAnyRole('admin','owner')")
+    @PutMapping("/{id}/status")
+    public ResponseEntity<PitchResponse> updateStatus(
+            @PathVariable("id") Integer id,
+            @RequestBody Map<String, String> requestBody) {
+
+        String status = requestBody.get("status");
+        return ResponseEntity.ok(pitchService.updateStatus(id, status));
     }
 }

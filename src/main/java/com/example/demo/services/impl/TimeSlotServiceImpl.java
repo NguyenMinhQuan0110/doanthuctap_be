@@ -8,11 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.dtos.request.TimeSlotRequest;
-
 import com.example.demo.dtos.response.TimeSlotResponse;
 import com.example.demo.entites.Complex;
-
 import com.example.demo.entites.TimeSlot;
+import com.example.demo.entites.enums.TimeSlotStatus;
 import com.example.demo.repositories.ComplexRepository;
 
 import com.example.demo.repositories.TimeSlotRepository;
@@ -95,6 +94,20 @@ public class TimeSlotServiceImpl implements TimeSlotService{
         TimeSlot timeSlot = timeSlotRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("TimeSlot not found"));
         timeSlotRepository.delete(timeSlot);
+    }
+    
+    @Override
+    public TimeSlotResponse updateStatus(Integer id, String status) {
+        TimeSlot timeSlot = timeSlotRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pitch not found"));
+
+        try {
+            TimeSlotStatus newStatus = TimeSlotStatus.valueOf(status.toLowerCase());
+            timeSlot.setStatus(newStatus);
+            return mapToResponse(timeSlotRepository.save(timeSlot));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status value: " + status);
+        }
     }
     
     private TimeSlotResponse mapToResponse(TimeSlot timeSlot) {

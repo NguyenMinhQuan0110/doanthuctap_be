@@ -39,7 +39,7 @@ public class UserRoleController {
     // Xóa 1 role khỏi user
     @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/{userId}/{roleId}")
-    public void removeRole(@PathVariable Integer userId, @PathVariable Integer roleId) {
+    public void removeRole(@PathVariable("userId") Integer userId, @PathVariable("roleId") Integer roleId) {
         userRoleService.removeRoleFromUser(userId, roleId);
     }
 }

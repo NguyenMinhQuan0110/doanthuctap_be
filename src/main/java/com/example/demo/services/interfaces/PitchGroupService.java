@@ -12,4 +12,5 @@ public interface PitchGroupService {
     PitchGroupResponse createPitchGroup(PitchGroupRequest request);
     PitchGroupResponse updatePitchGroup(Integer id, PitchGroupRequest request);
     void deletePitchGroup(Integer id);
+    PitchGroupResponse updateStatus(Integer id, String status);
 }

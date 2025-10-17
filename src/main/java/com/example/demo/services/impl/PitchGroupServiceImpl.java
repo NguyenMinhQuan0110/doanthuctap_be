@@ -12,6 +12,7 @@ import com.example.demo.dtos.response.PitchGroupResponse;
 import com.example.demo.entites.Complex;
 import com.example.demo.entites.Pitch;
 import com.example.demo.entites.PitchGroup;
+import com.example.demo.entites.enums.PitchStatus;
 import com.example.demo.repositories.ComplexRepository;
 import com.example.demo.repositories.PitchGroupRepository;
 import com.example.demo.repositories.PitchRepository;
@@ -69,12 +70,24 @@ public class PitchGroupServiceImpl implements PitchGroupService{
         group.setPricePerHour(request.getPricePerHour());
         group.setComplex(complex);
 
-        // Gán danh sách sân con
+        // ✅ Kiểm tra sân trùng nhóm
         if (request.getPitchIds() != null && !request.getPitchIds().isEmpty()) {
             Set<Pitch> pitches = request.getPitchIds().stream()
                     .map(id -> pitchRepository.findById(id)
                             .orElseThrow(() -> new RuntimeException("Pitch not found with id: " + id)))
                     .collect(Collectors.toSet());
+
+            // 🔍 Kiểm tra sân nào đã thuộc nhóm khác
+            for (Pitch pitch : pitches) {
+                if (!pitch.getGroups().isEmpty()) {
+                    String existingGroupNames = pitch.getGroups().stream()
+                            .map(PitchGroup::getName)
+                            .collect(Collectors.joining(", "));
+                    throw new RuntimeException(
+                            "Pitch '" + pitch.getName() + "' already belongs to group(s): " + existingGroupNames);
+                }
+            }
+
             group.setPitches(pitches);
         }
 
@@ -100,10 +113,25 @@ public class PitchGroupServiceImpl implements PitchGroupService{
         group.setComplex(complex);
 
         if (request.getPitchIds() != null) {
-        	Set<Pitch> pitches = request.getPitchIds().stream()
-        		    .map(pitchId -> pitchRepository.findById(pitchId)
-        		        .orElseThrow(() -> new RuntimeException("Pitch not found with id: " + pitchId)))
-        		    .collect(Collectors.toSet());
+            Set<Pitch> pitches = request.getPitchIds().stream()
+                    .map(pitchId -> pitchRepository.findById(pitchId)
+                            .orElseThrow(() -> new RuntimeException("Pitch not found with id: " + pitchId)))
+                    .collect(Collectors.toSet());
+
+            // 🔍 Kiểm tra trùng nhóm (ngoại trừ nhóm hiện tại)
+            for (Pitch pitch : pitches) {
+                boolean belongsToOtherGroup = pitch.getGroups().stream()
+                        .anyMatch(g -> !g.getGroupId().equals(id));
+                if (belongsToOtherGroup) {
+                    String existingGroupNames = pitch.getGroups().stream()
+                            .filter(g -> !g.getGroupId().equals(id))
+                            .map(PitchGroup::getName)
+                            .collect(Collectors.joining(", "));
+                    throw new RuntimeException(
+                            "Pitch '" + pitch.getName() + "' already belongs to group(s): " + existingGroupNames);
+                }
+            }
+
             group.setPitches(pitches);
         }
 
@@ -117,6 +145,20 @@ public class PitchGroupServiceImpl implements PitchGroupService{
         pitchGroupRepository.delete(group);
     }
 
+    @Override
+    public PitchGroupResponse updateStatus(Integer id, String status) {
+        PitchGroup pitchGroup = pitchGroupRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pitch not found"));
+
+        try {
+            PitchStatus newStatus = PitchStatus.valueOf(status.toLowerCase());
+            pitchGroup.setStatus(newStatus);
+            return mapToResponse(pitchGroupRepository.save(pitchGroup));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status value: " + status);
+        }
+    }
+    
     private PitchGroupResponse mapToResponse(PitchGroup group) {
         PitchGroupResponse res = new PitchGroupResponse();
         res.setId(group.getGroupId());

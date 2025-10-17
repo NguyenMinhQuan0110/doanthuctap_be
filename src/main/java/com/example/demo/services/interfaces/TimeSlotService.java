@@ -13,4 +13,5 @@ public interface TimeSlotService {
     TimeSlotResponse createTimeSlot(TimeSlotRequest request);
     TimeSlotResponse updateTimeSlot(Integer id, TimeSlotRequest request);
     void deleteTimeSlot(Integer id);
+    TimeSlotResponse updateStatus(Integer id, String status);
 }

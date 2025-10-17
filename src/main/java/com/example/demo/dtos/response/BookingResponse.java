@@ -13,6 +13,8 @@ public class BookingResponse {
     private Integer id;
     private TargetType targetType;
     private Integer targetId;
+    private String targetName;
+    private String complexName;
     private LocalDate bookingDate;
     private BookingStatus status;
     private LocalDateTime createdAt;
