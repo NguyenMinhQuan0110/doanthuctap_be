@@ -75,4 +75,12 @@ public class BookingController {
             @RequestParam("bookingDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate bookingDate) {
         return bookingService.getAvailableTimeSlots(complexId, targetType, targetId, bookingDate);
     }
+    
+    @PutMapping("/update-status/{id}")
+    public BookingResponse updateBookingStatus(
+            @PathVariable("id") Integer bookingId,
+            @RequestParam("status") String status) {
+        return bookingService.updateBookingStatus(bookingId, status);
+    }
+
 }

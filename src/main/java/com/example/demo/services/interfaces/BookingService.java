@@ -18,4 +18,6 @@ public interface BookingService {
     List<BookingResponse> getBookingsByComplex(Integer complexId);
     List<TimeSlotResponse> getAvailableTimeSlots(Integer complexId, TargetType targetType, Integer targetId, LocalDate bookingDate);
     BookingResponse cancelBooking(Integer id);
+    BookingResponse updateBookingStatus(Integer bookingId, String status);
+
 }

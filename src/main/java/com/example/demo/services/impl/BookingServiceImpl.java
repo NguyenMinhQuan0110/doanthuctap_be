@@ -72,6 +72,7 @@ public class BookingServiceImpl implements BookingService{
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return bookingRepository.findByUser(user)
                 .stream()
+                .sorted((b1, b2) -> b2.getBookingId().compareTo(b1.getBookingId())) // 🔽 Sắp xếp id giảm dần
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -156,8 +157,15 @@ public class BookingServiceImpl implements BookingService{
     }
     @Override
     public List<BookingResponse> getBookingsByComplex(Integer complexId) {
-        return bookingRepository.findByComplexId(complexId).stream().map(this::mapToResponse).collect(Collectors.toList());
+    	List<Booking> bookings = bookingRepository.findBookingsByComplexId(complexId);
+    	System.out.println("Bookings found: " + bookings);
+        return bookings
+                .stream()
+                .sorted((b1, b2) -> b2.getBookingId().compareTo(b1.getBookingId())) // 🔽 Sắp xếp id giảm dần
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
+
     
     @Override
     public List<TimeSlotResponse> getAvailableTimeSlots(Integer complexId, TargetType targetType, Integer targetId, LocalDate bookingDate) {
@@ -247,6 +255,21 @@ public class BookingServiceImpl implements BookingService{
         }
 
         return mapToResponse(bookingRepository.save(booking));
+    }
+
+    @Override
+    public BookingResponse updateBookingStatus(Integer bookingId, String status) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        try {
+            BookingStatus newStatus = BookingStatus.valueOf(status.toLowerCase());
+            booking.setStatus(newStatus);
+            booking.setUpdatedAt(LocalDateTime.now());
+            return mapToResponse(bookingRepository.save(booking));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status value: " + status);
+        }
     }
 
     
