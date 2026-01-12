@@ -35,7 +35,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**", "/api/users/create","/uploads/**",
                 		"/api/pitches/complex/**","/api/complexes/**","/api/provinces","/api/districts/**","/api/images/**",
                 		"/api/pitch-groups/complex/**","/api/bookings/available-timeslots",
-                		"/api/complexes/search").permitAll()
+                		"/api/complexes/search",
+                		"/api/paypal/success",  // <- THÊM
+                	    "/api/paypal/cancel"    // <- THÊM
+                		).permitAll()
                 // Các endpoint khác cần JWT sau này
                 .anyRequest().authenticated()
             )

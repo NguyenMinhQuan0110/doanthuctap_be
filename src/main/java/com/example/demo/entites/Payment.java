@@ -49,6 +49,9 @@ public class Payment {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+    
+    @Column(name = "transaction_id", length = 255)
+    private String transactionId; // <- Thêm cái này để lưu PayPal transaction ID
 
     @OneToOne
     @JoinColumn(name = "booking_id")
