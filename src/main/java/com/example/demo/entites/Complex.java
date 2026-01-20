@@ -50,6 +50,9 @@ public class Complex {
 
     @Column(name = "phone", length = 15)
     private String phone;
+    
+    @Column(name = "avatarCom")
+    private String avatarCom;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20)

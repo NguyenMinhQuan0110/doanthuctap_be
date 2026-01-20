@@ -18,10 +18,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.dtos.request.ComplexRequest;
 import com.example.demo.dtos.response.ComplexResponse;
 import com.example.demo.dtos.response.ComplexResponseDistance;
+import com.example.demo.dtos.response.UserResponse;
 import com.example.demo.entites.enums.PitchType;
 import com.example.demo.services.interfaces.ComplexService;
 
@@ -108,6 +110,13 @@ public class ComplexController {
             @RequestParam("lng") double longitude,
             @RequestParam("radius") double radiusKm) {
         return ResponseEntity.ok(complexService.findNearbyComplexes(latitude, longitude, radiusKm));
+    }
+    
+    @PostMapping("/avatarCom/{id}")
+    public ResponseEntity<ComplexResponse> updateAvatar(
+            @PathVariable("id") Integer id,
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(complexService.updateAvatarCom(id, file));
     }
 
 }

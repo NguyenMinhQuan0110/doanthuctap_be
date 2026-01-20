@@ -1,11 +1,20 @@
 package com.example.demo.services.impl;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.dtos.request.ComplexRequest;
 import com.example.demo.dtos.response.ComplexResponse;
@@ -26,6 +35,13 @@ import jakarta.transaction.Transactional;
 @Service
 @Transactional
 public class ComplexServiceImpl implements ComplexService{
+	
+	@Value("${upload.complex-dir}")
+    private String avatarComDir;
+	
+	@Value("${server.url}")
+    private String serverUrl;
+	
     @Autowired
     private ComplexRepository complexRepository;
 
@@ -121,6 +137,12 @@ public class ComplexServiceImpl implements ComplexService{
     }
 
     private ComplexResponse mapToResponse(Complex complex) {
+    	
+    	String avatarComUrl = null;
+        if (complex.getAvatarCom() != null && !complex.getAvatarCom().isEmpty()) {
+        	avatarComUrl = serverUrl + complex.getAvatarCom();
+        }
+    	
         ComplexResponse response = new ComplexResponse();
         response.setId(complex.getComplexId());
         response.setName(complex.getName());
@@ -130,6 +152,7 @@ public class ComplexServiceImpl implements ComplexService{
         response.setPhone(complex.getPhone());
         response.setStatus(complex.getStatus());
         response.setCreatedAt(complex.getCreatedAt());
+        response.setAvatarCom(avatarComUrl);
 
         if (complex.getOwner() != null) {
             response.setOwnerId(complex.getOwner().getUserId());
@@ -275,7 +298,40 @@ public class ComplexServiceImpl implements ComplexService{
         return EARTH_RADIUS * c;
     }
     
+    @Override
+    public ComplexResponse updateAvatarCom(Integer id, MultipartFile file) {
+        Complex complex = complexRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Complex not found"));
+        try {
+            // Xoá file cũ
+            if (complex.getAvatarCom() != null) {
+                File oldFile = new File("." + complex.getAvatarCom());
+                if (oldFile.exists()) oldFile.delete();
+            }
+
+            // Lưu file mới
+            String newFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            Path filePath = Paths.get(avatarComDir, newFileName);
+            Files.createDirectories(filePath.getParent());
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            // Cập nhật path tương đối trong DB
+            complex.setAvatarCom("/uploads/complexes/" + newFileName);
+            complexRepository.save(complex);
+
+            return mapToResponse(complex);
+        } catch (IOException e) {
+            throw new RuntimeException("Error saving avatar", e);
+        }
+    }
+    
     private ComplexResponseDistance mapToResponseDistance(Complex complex) {
+    	
+    	String avatarComUrl = null;
+        if (complex.getAvatarCom() != null && !complex.getAvatarCom().isEmpty()) {
+        	avatarComUrl = serverUrl + complex.getAvatarCom();
+        }
+    	
         ComplexResponseDistance response = new ComplexResponseDistance();
         response.setId(complex.getComplexId());
         response.setName(complex.getName());
@@ -285,6 +341,7 @@ public class ComplexServiceImpl implements ComplexService{
         response.setPhone(complex.getPhone());
         response.setStatus(complex.getStatus());
         response.setCreatedAt(complex.getCreatedAt());
+        response.setAvatarCom(avatarComUrl);
 
         if (complex.getOwner() != null) {
             response.setOwnerId(complex.getOwner().getUserId());
@@ -303,6 +360,7 @@ public class ComplexServiceImpl implements ComplexService{
 
         return response;
     }
-
+    
+    
 
 }

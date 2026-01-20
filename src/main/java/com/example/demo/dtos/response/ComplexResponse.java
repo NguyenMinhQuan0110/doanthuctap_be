@@ -18,10 +18,9 @@ public class ComplexResponse {
     private String phone;
     private ComplexStatus status;
     private LocalDateTime createdAt;
-
+    private String avatarCom;
     private Integer ownerId;
     private String ownerName;
-
     private Integer districtId;
     private String districtName;
     private Integer provinceId;

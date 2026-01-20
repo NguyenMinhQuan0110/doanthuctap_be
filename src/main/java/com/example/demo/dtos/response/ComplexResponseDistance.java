@@ -17,7 +17,7 @@ public class ComplexResponseDistance {
     private String phone;
     private ComplexStatus status;
     private LocalDateTime createdAt;
-
+    private String avatarCom;
     private Integer ownerId;
     private String ownerName;
 

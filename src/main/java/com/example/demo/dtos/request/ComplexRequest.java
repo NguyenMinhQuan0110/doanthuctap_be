@@ -13,8 +13,6 @@ public class ComplexRequest {
     private BigDecimal  latitude;
     private BigDecimal  longitude;
     private String phone;
-
     private Integer ownerId;
-
     private Integer districtId;
 }

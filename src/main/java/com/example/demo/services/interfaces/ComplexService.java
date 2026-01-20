@@ -3,6 +3,7 @@ package com.example.demo.services.interfaces;
 import java.util.List;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.dtos.request.ComplexRequest;
 import com.example.demo.dtos.response.ComplexResponse;
@@ -23,5 +24,6 @@ public interface ComplexService {
     
     List<ComplexResponse> getActiveComplexes();
     List<ComplexResponseDistance> findNearbyComplexes(double latitude, double longitude, double radiusKm);
+    ComplexResponse updateAvatarCom(Integer id, MultipartFile file);
 
 }
